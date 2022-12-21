@@ -1,0 +1,3 @@
+2022-15-11-21-22-57 INFO-Hi
+2022-15-11-21-22-57 WARNING-warning msg
+2022-15-11-21-22-57 ERROR-error message
