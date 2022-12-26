@@ -1,0 +1,707 @@
+immutable(cant change):
+num,int, string, tuple, frozen set, user-defined classes
+mutable(can change)
+list, dict, set, user-defined class
+
+interview question for freshers (0-3 years of experience):
+
+Theoretical Questions for Freshers:
+intering is reusing the object in demand: at startup preload cache a global list of of int in range -5,255 any number in this range are used from cache they are called singleton obj
+ and any outside range act as mutable
+
+1)       What is the difference between list and tuples in Python? 
+		tuple is immutable and list is mutable and time take for processing tuple is faster than list  
+
+2)       How is Python an interpreted language? 
+		py code is first converted into byte and that byte is used for exec by python vm its bit slower than c, c++
+
+3)       How is memory managed in Python? 
+based on ref count for the memory address its decided to clear the memory. 
+get ref count using sys.getrefcount or ctypes.c_long.from_address(address).value
+circluar referenc cause memory leak 
+gc.collect does memomry management 
+
+4)       What are Python namespaces? 
+		namespace is control all the name used for function, variable etc.. and assure its not conflict buildin, local, global.
+		variable name and its binding object exist in specific part of the code called lexical scope and this binding is stored in namespaces
+		build in scope reside inside every where in python print dict ....
+
+5)       What are decorators in Python?
+closure
+Inner function has free variable which is bound to outer function and inner function is return from outer function then this inner function is called closure.
+in other term its called outer function return closure
+def outer():
+	x='s'
+	def inner():
+		print(x)
+	return inner
+fn=outer()
+fn.__code__.co__freevars --> give list of free variable
+fn.__closure__ --> give the memomry addr of the intermediat referenc address and main obj address
+
+def counter(fn):
+    count=0
+    def inner(*args, **kwargs):
+        nonlocal count
+        count +=1
+        print('function {0} was called {1} times'.format(fn.__name__, count))
+        return fn(*args, **kwargs)
+    return inner
+
+def add(a,b=0):
+    return a +b
+
+add =counter(add)
+#print(add.__code__.co__freevars)
+print(add.__closure__)
+result =add(1,2)
+the whole concept of closure is called decorator. In here we decorated add function with counter,
+counter func is called decorator func
+Decorator:
+Its take func as argumnet.return closure and closure take any combination of argument.
+Decorator run same function in inner function(closure) and closure function call orginal func using arg pass to the closure.
+
+Alternative to do add =counter(add) we can add @counter above the add function declaration
+@counter
+def add(a,b=0):
+    return a +b
+
+and when we decorate the add function and if try add.__name__ we will get the name of the closure in this case 'inner'
+Alternative is to initialize the __name__ in inner function 
+def inner(*args, **kwargs):
+        nonlocal count
+        count +=1
+		inner.__name__=fn.__name__
+		inner.__doc__=fn.__doc__
+        print('function {0} was called {1} times'.format(fn.__name__, count))
+        return fn(*args, **kwargs)
+inner.__name__=fn.__name__
+inner.__doc__=fn.__doc__
+return inner
+wraps func from functools module where wraps is decorator which take parameter
+
+from functools import wraps
+
+def counter(fn):
+    count=0
+	@wraps(fn)
+	def inner(*args, **kwargs):
+			nonlocal count
+			count +=1
+			print('function {0} was called {1} times'.format(fn.__name__, count))
+			return fn(*args, **kwargs)
+	return inner
+
+or below is same as above
+
+def counter(fn):
+    count=0
+	def inner(*args, **kwargs):
+			nonlocal count
+			count +=1
+			print('function {0} was called {1} times'.format(fn.__name__, count))
+			return fn(*args, **kwargs)
+	inner =wraps(fn)(inner)
+	return inner
+
+
+	
+6)       What are Dict and List comprehensions?
+	List Comprehension is where we can create list from other sequence with loop running inside
+	x = [i for i in range(10)]
+	x= [(x, y) for x in [1,2,3] for y in [3,1,4] if x != y]
+	dict Comprehension is where we can create list from other dict sequence with loop running inside
+	dict([(i, i+10) for i in range(4)]) same as {i : i+10 for i in range(4)}
+
+7)       What is the difference between .py and .pyc files? 
+
+py is source code and pyc is compiled vrsion only diff only import python get bytecode version
+
+8)       What is slicing in Python? it cut the sequence obj base on the range
+a = ("a", "b", "c", "d", "e", "f", "g", "h")
+x = slice(2)
+print(a[x])
+y = slice(3, 5)
+print(a[y])
+
+9)       What are local variables and global variables in Python? 
+local scope is the variabe reside in the function and global variable reside in the entire module
+
+10)   What is the difference between Python Arrays and lists?
+array sequence of same data type
+list  is sequence of variabe data type
+array use less memmory
+list use larger memmory
+array can perform arithmatic operation
+list cant perform
+array use for longer sequence of data
+list use for shorter sequence of data
+modification of data is easier in list compare to array
+
+11)  What is __init__? 
+is initializer in class
+if create class abc
+abc() is constructer
+abc.__init__() is initializer
+abc.__new__() is allocator
+
+12)  What is a lambda function? 
+is a nameless function 
+x = lambda a : a + 10
+print(x(5))
+
+12.5 Lambda,Map,Filter,Reduce and Zip
+https://medium.com/@lokeshsharma596/python-lambda-map-filter-reduce-and-zip-function-c59d8946a3ce
+lambda: is nameless function
+find_max=lambda a,b,c:a if a>b and a>c 
+                        else (b if b>a and b>c else c)
+print(find_max(6,15,1))
+
+Map: takes function and iterable and return iterable sequence
+ map(fun, iter)
+nums = [1, 2, 3, 4, 5]  
+def sq(n):    
+    return n*n  
+square=list(map(sq, num))
+
+filter: takes function and iterable and return filtered iterable sequence
+filter(func, iterable)
+seq = [0, 1, 2, 3, 4, 5]
+# result contains even numbers of the list
+result = filter(lambda x:  (x%2 == 0), seq)
+print(list(result))
+
+reduce: function and a sequence and returns a single value calculated 
+reduce(func, seq)
+from functools import reduce
+seq=[2,3,4,5,6]
+multiply=reduce(lambda a,b:a*b,seq)
+
+zip taks multiple iterables and returns an iterator of tuples.
+zip(*iterables)
+roll_no = [4, 1, 3]
+marks = [40, 50, 60]
+mapped = zip(roll_no, marks)
+print(list(mapped))
+output:
+[(4, 40), (1, 50), (3, 60)]
+
+13)  What is self in Python? 
+	self is like this operator it refer to instance of the class
+
+14)  What is pickling and unpickling? 
+Python pickle module is used for serializing and de-serializing python object structures
+#pickeling
+import pickle
+mylist = ['a', 'b', 'c', 'd']
+with open('datafile.txt', 'wb') as fh:
+   pickle.dump(mylist, fh)
+#unpickeling
+import pickle
+pickle_off = open ("datafile.txt", "rb")
+emp = pickle.load(pickle_off)
+print(emp)
+
+Pickle a simple dictionary −
+
+import pickle
+EmpID = {1:"Zack",2:"53050",3:"IT",4:"38",5:"Flipkart"}
+pickling_on = open("EmpID.pickle","wb")
+pickle.dump(EmpID, pickling_on)
+pickling_on.close()
+
+Unpickle a dictionary −
+import pickle
+pickle_off = open("EmpID.pickle", 'rb')
+EmpID = pickle.load(pickle_off)
+print(EmpID)
+
+Pickle Exceptions
+Below are some of the common exceptions raised while dealing with pickle module −
+
+Pickle.PicklingError: If the pickle object doesn’t support pickling, this exception is raised.
+
+Pickle.UnpicklingError: In case the file contains bad or corrupted data.
+
+EOFError: In case the end of file is detected, this exception is raised.
+
+Prons:
+Comes handy to save complicated data.
+Easy to use, lighter and doesn’t require several lines of code.
+The pickled file generated is not easily readable and thus provide some security.
+
+Cons:
+Languages other than python may not able to reconstruct pickled python objects.
+Risk of unpickling data from malicious sources.
+
+15)  What are docstrings in Python? 
+documenting a function or class can be access using __doc__ and declared using ''' ''' if we do help for the function it will show this string
+
+16)  What does this mean: *args, **kwargs? And why would we use it?
+*arg should be the last arg after we exhausted all variable argument
+def func(a,b,*args):
+	pass
+*args store value in tuple
+**kwargs is key word arg should be after *arg and we can add variable amount args after **kwargs as well unlike keyword only argument
+kwarg store value in dict format
+* indicate there should be no positional arg after that so after * we can only have **kwargs or key word only argument
+
+17)  What is the difference between deep and shallow copy?
+deep copy  create new object without reference to the child object  which mean changes done to copied version will not effect the orginal and shallow copy with reference
+both are part of copy module
+18)  Explain Inheritance in Python with an example.
+class abc():
+	def __init__(self, a):
+		self.a=a
+
+	def func(a):
+		retun self.a+1
+class pqr(abc):
+	def....
+
+
+19)  How are classes created in Python?
+class name():
+	def __init__(self,x):
+		...
+
+20)  Does python support multiple inheritance?
+class cxv(abc,pqw):
+	pass
+super is refer to parent object from child class
+
+21)  What is Polymorphism in Python? 
+it can be achieved when we implement method overiding , overloading
+22)  Define encapsulation in Python? hidding the internal variable of class from access from outside class
+  _a is protected can be access from child class variable __a is private variable cannot be access from child class
+
+23)  How do you do data abstraction in Python? where internal functionality is hidden or out of the scope 
+abstract class can have normal and abstract method and abstract class cannot create object
+for making a class abstract we need to import ABC and abstractmethod from abc since by default python does not support abstract
+from abc import ABC --> abstractmethod
+#class car is abstract class since its has abstract method
+class Car(ABC):   
+     #this is abstract method
+    @abstractmethod
+    def mileage(self): 
+        pass  
+  
+class Tesla(Car):
+    def mileage(self):   
+        print("The mileage is 30kmph")     
+class Renault(Car):   
+    def mileage(self):   
+            print("The mileage is 27kmph ")   
+          
+# Driver code   
+t= Tesla ()   
+t.mileage()     
+r = Renault()   
+r.mileage()   
+
+
+24)  Which sorting technique is used by sort() and sorted() functions of python?
+	 the sort() function will modify the list it is called on.
+	 The sorted() function will create a new list containing a sorted version of the list it is given.
+
+25)  What is zip function? 
+is iterator of tuple convert multiple list in part of tuple for each index of the list
+
+
+Interview question for freshers (4-8 years of experience):
+
+Theoretical Questions:
+
+
+3)      Is Tuple Comprehension? If yes, how and if not why? 
+tuple comprehension not possible since as per comprehension every time 
+loop runs its modify the value of the object which is not allowed for tuple
+
+4)      What is the difference between xrange and range function?
+range return iterable object and take more memory than xrange
+xrange return generator object
+sys.getsizeof will show the memmory alloted
+also all the list can be done on range but not on xrange
+
+5)      What are Iterators in Python?
+its python obj user to iterate over iterable obj like set,list..... 
+ txt='this test iterator'
+ iter_obj=iter(txt)
+ while True:
+    try:
+ 
+        # Iterate by calling next
+        item = next(iter_obj)
+        print(item)
+    except StopIteration: #This method raises a StopIteration to signal the end of the iteration.
+ 
+        # exception will happen when iteration will over
+        break
+Also once we reach the end we cant use same iter obj again we need to re initialize it
+
+
+7)      What are Generators in Python?
+generator function is function which yield instead of return. yield pause the function and save its local state so the next call continue from their
+	def gen():
+		for x in range(10):
+			yield x**2
+same can be return using g = (x**2 for x in range(10)) --> difference in list comprehension we use sqaure bracket and in generator creation we use curve bracket
+for i in gen:
+  print(i)
+with generator it get exausted when it reach the end we cant reuse same generator hence its better in memory management compare to list comprehension. 
+List comprehension is faster in processing then generator 
+
+most common diff is generator use yield and iterator just need next and use iter with parameter as iterable obj
+
+8)      Does Python supports multiple Inheritance? yes
+		class name(parent1, parent2):
+			...
+
+9)      What is the difference between Set and Dictionary? 
+		A Set is an unordered collection data type that is iterable, mutable and has no duplicate elements.
+		function in set: add, union using '|', intersection using '&', difference using set1.difference(set2), clear the set using set1.clear()
+		Frozen set is immutable object  elements of the frozen set remain the same after creation its combination of set and tuple feature
+		frozen_set = frozenset(["e", "f", "g"])
+		Dictionary key, value 
+		dic= {1:2,3:4}
+
+10)  What are Decorators? already answered
+
+11)  What is map function in Python? already answered
+
+12)  What is the difference between NumPy and SciPy?
+numpy is most used for statistical purpose and scipy is used for algebraic func. numpy mostly deal with multidimen array
+
+
+13)  What is the process of compilation and linking in python?
+once the compilation is done and generate pyc linking does the linking does linking of func name with defination.
+
+14)  How is Multithreading achieved in Python?
+we can use threading module
+create thread 
+r=threading.Thread(target=acquire, args=[i,j])
+start thread
+r.start()
+for multi threading
+import concurrent.futures
+with  concurrent.futures.ThreadPoolExecutor(max_workers=141) as w:
+    w.map(func, list(zip(ds,ts)))
+	
+15)  Whenever Python exits, why isn’t all the memory de-allocated?
+mostly bcoz of circular reference and obj referenc from global namespace arent always freed
+
+16)  What is the usage of help() and dir() function in Python?
+help return the documentation of th functioon
+dir list down all the attribute and function there local namespace
+
+17)  What are python iterators? already answered
+
+18)  How does break, continue and pass work? 
+break stop execution of the entire module. 
+continue stop execution of current loop /statement jump to next iteration
+pass is create placeholder for function or class to avoid execution failure
+
+
+19)  How to remove values to a python array?
+import array as arr      
+a = arr.array('d', [1.1, 3.5, 4.5])  --> here 'd' is the type of value allowed in the array
+print(a[1]) --> accesing array element and its similar to list
+arr[1:2] --> slice the array
+arr.append(5.6) --> add element
+del number[2] --> delete third element
+array is used only for mathematical operation
+
+20)  What is the difference between deep and shallow copy? already answered
+
+Interview question for freshers (Above 8 Years):
+
+Theoretical Questions:
+
+1)      What is Scope Resolution in Python?
+
+2)      Explain split() and join() functions in Python?
+		join : concat list with delimiter and convert to string
+		split : create list from string using delimiter
+
+3)      What are negative indexes and why are they used? 
+		negative index refer element from the end of the list
+
+4)      How do you create a class in Python?
+
+5)      How does inheritance work in python? Explain it with an example.
+
+6)      Are access specifiers used in python?
+		by default all member of class are public to specify member as private we use '__' before variable and for protected we use '_' before variable name
+
+7)      Why is finalize used?
+
+8)      How will you check if a class is a child of another class?
+		issubclass
+		issubclass() only check whether it is a subclass of classinfo 
+		isinstance() checks whether or not the object is an instance or subclass of the classinfo.
+		
+
+9)      How can you generate random numbers?
+import random
+n = random.random()
+m=random.randint(0,22)
+
+10)  Define GIL? 
+Global Interpreter Lock (GIL) it allow only one thread hold the control by python interpretor at any given time but can cause deadlock
+referenc count need protection from race condition where 2 thread increase or decrease value simultaneously .this ref count can kept safe by adding lock to the data structures 
+
+11)  Explain Django architecture
+django-admin startproject personal_portfolio
+
+rp-portfolio/
+│
+├── personal_portfolio/
+│   ├── personal_portfolio/
+│   │   ├── __init__.py
+│   │   ├── settings.py
+│   │   ├── urls.py
+│   │   └── wsgi.py
+│   │
+│   └── manage.py
+
+for each app we startapp from manage.py
+python manage.py startapp app1
+each has their specific
+__init__.py to treat dir as pkg
+admin.py for setting admin page
+app.py app configuration
+model.py django class that ORM convert to database tables
+test.py contains test class
+views.py func and class to handle data display in html template
+
+for each app created we need to install by adding entry  installed_app list
+
+12)  Explain the use of session in Django framework?
+session is already configured with project creation its setup in INSTALLED_APPS MIDDLEWARE
+we can use session attribute within view from request parameter httprequest is passed first
+
+13)  List out the inheritance styles in Django.
+abstract base class: This style is used when you only want parents class to hold information that you don’t want to type out for each child model.
+from django.db import models
+class ContactInfo(models.Model):
+	name=models.CharField(max_length=20)
+	email=models.EmailField(max_length=20)
+	address=models.TextField(max_length=20)
+    class Meta:
+        abstract=True
+
+class Customer(ContactInfo):
+	phone=models.IntegerField(max_length=15)
+
+class Staff(ContactInfo):
+	position=models.CharField(max_length=10)
+
+admin.py
+admin.site.register(Customer)
+admin.site.register(Staff)
+Base class Table is not created in This inheritance. when migrated
+
+Multi Table Model Inheritance:This style is used if you are sub-classing an existing model and need each model to have its own database table.
+from django.db import models
+class Place(models.Model):
+	name=models.CharField(max_length=20)
+	address=models.TextField(max_length=20)
+	def __str__(self):
+		return self.name
+
+class Restaurants(Place):
+	serves_pizza=models.BooleanField(default=False)
+	serves_pasta=models.BooleanField(default=False)
+	def __str__(self):
+		return self.serves_pasta
+
+admin.py
+from django.contrib import admin
+from .models import Place,Restaurants
+admin.site.register(Place)
+admin.site.register(Restaurants)
+
+
+TECHM failed attempt
+# Online Python compiler (interpreter) to run Python online.
+# Write Python 3 code in this online editor and run it.
+s="very good morning shafin"
+print(' '.join(s.split(' ')[::-1]))
+
+lst=[7,15,22,31,28,24]
+div=5
+fun=lambda i : i % div
+print(fun(22))
+lst.sort(key=fun)
+print(lst)
+
+
+Django inteview
+install django
+pip install django
+pip -m django --version
+pip freeze
+
+create project
+django-admin startproject projname
+python manage.py startapp appname
+
+python manage.py runserver	8080<to specific port>
+python manage.py runserver	0.0.0.0:8080<to specific ip port>
+
+migrate
+python manage.py makemigration
+python manage.py migrate
+python manage.py showmigrate(all the migration show)
+python manage.py showmigrate appname(specific app)
+
+python manage.py createsuperuser 
+
+python manage.py inspectdb(db schema)
+
+User.objects.all() --> user is any model name
+
+User.objects.filter(name='shafin') --> ger specific user details
+User.objects.get(id=12) --> ger specific user details and only perticular item
+User.objects.filter(id=12).delete() --> delete entry
+update details
+tomodify=User.objects.get(id=12)
+tomodify.city="hyderabad"
+tomodify.save()
+add new data
+user=user(name="asda", city="asdsa")
+user.save()
+
+multiple query set can be combine  in 2 way
+union approach
+if queries belong to same model
+que1=model1.objects.filter(id.__gte=4)
+que2=model1.objects.filter(id.__gte=56)
+res=que1|que2
+itertool approach
+from itertools import chain
+que1=model1.objects.filter(id.__gte=4)
+que2=model2.objects.filter(id.__gte=56)
+res=list(chain(que1,que2))
+disadvantage of itertool approach it return list not queryset
+
+django architecture is model view template
+flow of django 
+user make request -> which hit endpoint or url -> which hit view function which decide to go with model or template
+template -> is htm representation of the model via view it use jinja for render view htm representation
+view -> use model to get data that need to be rendered via template
+model is where actual schema for database/table are done
+how Request are handled
+when request comes -> it need to be handled by manage.py -> which goes to setting to py for all config -> which goes to url -> which hit view -> which use the model and template to output
+
+django ORM (object relational mapper)
+its use django way of performing sql CRUD operation
+select * from emp where name="shafin"
+orm alternative
+emp.objects.filter(name="shafin")
+adv of using orm is compatiblity across diff dbs
+setting db in django
+in setting.py there is DATABASE dictionary with multiple parameter it set
+DATABASE={'default':[
+'ENGINE':...,
+'NAME':...,
+'USER':...,
+'PASSWORD':...,
+'HOST':...,
+'PORT':....
+]}
+
+What is CSRF(Cross site request forgery) token:
+its protect from malicious attack done usually via link JS form.
+its a unique and its not remain same generated by Server side and transmitted to client
+include{% csrf_token %} in html form where we are making post req
+
+what is query set
+queryset is collection objects from database and used by ORM it similar to select statement
+
+select related it follow foreign key relation get additional related object. It use joining on the query itself
+e=model1.objects.select_related(<fkfield>).get(id=5)  <-- it doesnt hit the main table as it already got loaded in previous query
+
+prefetch_related it perform many to many forward many to many. it use seperate lookup and join on python side
+e=mainmodel.objects.prefetch_related(<childtable>).get(id=5)
+
+get will only give one result and filter will give all the matched result
+e=mainmodel.objects.get(name='xyz') <-- it will throw error if no data found(DoesNotExist) or multiple data found(MultipleObjectsReturned)
+e=mainmodel.objects.filter(name='xyz') <-- it will return empty queryset if no data found
+
+Static files
+Are image, css, js etc does perform any modification in request or operation of django are loaded in static folder
+django.contrib.staticfiles are used to manage static files is installed app as part of setting.py
+to configure or django to recognize the static file we need initialize 
+STATIC_ROOT= os.path.join(BASE_DIR,'static')
+STATIC_URL = '/static/'
+STATICFILES_DIRS=[os.path.join(BASE_DIR,'shafinthiyam/static')]
+#  Add configuration for static files storage using whitenoise
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+usage in template via jinja
+{% load static %}
+<img src="{% static "my_app/example.jpg" %}" alt="My image">
+
+django admin pannel is gui used for administrative work. It comes with customizable admin interface.
+To use table with admin interface we need to register their model via admin.py
+its imported from django.contrib pkg
+multple usage changepassword, showmigration makemigration, migrate...
+
+q is create complex queries. is object which encap keyword as field lookup
+from django.db	import models
+from django.db.models import Q
+models.objects.get(Q(name__starswith='shaf')| Q(name__starswith='ra'))
+models.objects.get(Q(name__starswith='shaf')& Q(name__starswith='ra'))
+
+include in url
+from django.urls import path, include
+urlpatterns=[path('', views.index, name='index'),
+        path('<str:Employee_id>',include('project.urls'))]
+used to include url from app to be included in main project url
+
+
+{% include %}: it used to include template with in template
+
+Middleware in django
+for any request send to django first goes through the middleware used for security and auth related and its done before transferd to view and then template
+eg csrf, auth, session
+
+django signal
+
+context is dictionary which past via view to template to be rendenred
+
+django exception
+its part of django.core.exception
+appregistrynotready raisde for using model before loading app process
+validattionerror
+emptyresutlset
+multipleobjectreturned ...
+
+django url exception part of django.urls
+404 error
+no reverse match
+djanog http exception part of django.http
+unreadableposterror ..
+django database exception are part of django.db 
+db error
+integrity erro
+
+serializing to convert django object xml,json, yaml
+from django.core import serializers
+
+
+Authentication and authorization (hope not asked)
+token based authenticaton: it give access to service base on the security token
+we need include
+'rest_framework' app
+and set below dictionary
+REST_FRAMWORK={
+"DFAULT_AUTHENTICATION_CLASSES":[
+"rest_framework.authenticaton.TokenAuthentication',
+]
+
+and decorate using 
+@authentication_classes(['TokenAuthentication'
+}
+
+
