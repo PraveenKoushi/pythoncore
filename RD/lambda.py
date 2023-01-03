@@ -6,3 +6,4 @@ print(x)
 for animal in x:
     assert isinstance(animal, object)
     print(animal)
+    print(animal)
